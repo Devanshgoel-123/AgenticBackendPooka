@@ -9,13 +9,9 @@ import {
 } from "@elizaos/core";
 import { bootstrapPlugin } from "@elizaos/plugin-bootstrap";
 import { createNodePlugin } from "@elizaos/plugin-node";
-import { solanaPlugin } from "@elizaos/plugin-solana";
 import fs from "fs";
-import net from "net";
-import path from "path";
-import { fileURLToPath } from "url";
 import { initializeDbCache } from "./cache/index.ts";
-import { startChat } from "./chat/index.ts";
+import { handleUserInput } from "./chat/index.ts";
 import { initializeClients } from "./clients/index.ts";
 import {
   getTokenForProvider,
@@ -24,9 +20,26 @@ import {
 } from "./config/index.ts";
 import { initializeDatabase } from "./database/index.ts";
 import { PookaCharacter } from "./character.ts";
+import express, { Request, Response } from 'express';
+import bodyParser from "body-parser";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { fileURLToPath } from 'url';
+import path from 'path';
+import { depositAction } from "./Actions/DepositAmount/deposit.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const app=express();
+app.use(bodyParser.json())
+const httpServer=createServer(app)
+const io=new Server(httpServer, {
+
+})
+
+const runtimeMap = new Map<string, AgentRuntime>();
+
 
 export const wait = (minTime: number = 1000, maxTime: number = 3000) => {
   const waitTime =
@@ -62,7 +75,8 @@ export function createAgent(
     ].filter(Boolean),
     providers: [],
     actions: [
-      openPostionAction
+      openPostionAction, 
+      depositAction
     ],
     services: [],
     managers: [],
@@ -109,71 +123,60 @@ async function startAgent(character: Character, directClient: DirectClient) {
   }
 }
 
-const checkPortAvailable = (port: number): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const server = net.createServer();
-
-    server.once("error", (err: NodeJS.ErrnoException) => {
-      if (err.code === "EADDRINUSE") {
-        resolve(false);
-      }
-    });
-
-    server.once("listening", () => {
-      server.close();
-      resolve(true);
-    });
-
-    server.listen(port);
-  });
-};
-
 const startAgents = async () => {
   const directClient = new DirectClient();
-  let serverPort = parseInt(settings.SERVER_PORT || "3000");
+  let serverPort = parseInt(settings.SERVER_PORT || "4000");
   const args = parseArguments();
-
-  let charactersArg = args.characters || args.character;
-  console.log
   let characters = [PookaCharacter];
 
-  console.log("charactersArg", charactersArg);
-  if (charactersArg) {
-    characters = await loadCharacters(charactersArg);
-  }
-  console.log("characters", characters);
+  console.log("characters",characters[0].name);
   try {
     for (const character of characters) {
-      await startAgent(character, directClient as DirectClient);
+      const runtime = await startAgent(character, directClient as DirectClient);
+      console.log("The agent runtime is",runtime.serverUrl, runtime)
+      runtimeMap.set(character.name, runtime);
     }
   } catch (error) {
     elizaLogger.error("Error starting agents:", error);
   }
-
-  while (!(await checkPortAvailable(serverPort))) {
-    elizaLogger.warn(`Port ${serverPort} is in use, trying ${serverPort + 1}`);
-    serverPort++;
-  }
-
   directClient.startAgent = async (character: Character) => {
     return startAgent(character, directClient);
   };
 
-  directClient.start(serverPort);
+  directClient.start(serverPort)
 
   if (serverPort !== parseInt(settings.SERVER_PORT || "3000")) {
     elizaLogger.log(`Server started on alternate port ${serverPort}`);
   }
 
-  const isDaemonProcess = process.env.DAEMON_PROCESS === "true";
-  if(!isDaemonProcess) {
-    elizaLogger.log("Chat started. Type 'exit' to quit.");
-    const chat = startChat(characters);
-    chat();
-  }
 };
 
-startAgents().catch((error) => {
-  elizaLogger.error("Unhandled error in startAgents:", error);
-  process.exit(1);
+app.post('/message', async (req:Request, res:Response):Promise<any>=>{
+  const { text, agentId } = req.body;
+  console.log(agentId, text)
+  const runtime = runtimeMap.get(agentId);
+  if (!runtime) {
+    return res.status(404).json({ error: "Agent not found" });
+  }
+
+  try {
+    const messages = await handleUserInput(text,agentId)
+    return res.status(200).json({
+      response:messages
+    })
+  } catch (err) {
+    console.error("Agent handling error:", err);
+    return res.status(500).json({ error: "Agent failed to process input" });
+  }
+})
+
+
+startAgents()
+.then(() => {
+    httpServer.listen(5432, () => {
+      console.log("Server with WebSocket and REST API listening on port 4000");
+    });
+})
+  .catch((err) => {
+    console.error("Failed to start agents:", err);
 });

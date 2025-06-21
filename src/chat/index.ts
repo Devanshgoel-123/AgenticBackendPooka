@@ -1,25 +1,10 @@
-import { parseJSONObjectFromText, settings } from "@elizaos/core";
-import readline from "readline";
+import { settings } from "@elizaos/core";
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
-rl.on("SIGINT", () => {
-  rl.close();
-  process.exit(0);
-});
-
-async function handleUserInput(input, agentId) {
-  if (input.toLowerCase() === "exit") {
-    rl.close();
-    process.exit(0);
-  }
-
+export const handleUserInput=async(input:string , agentId:string)=>{
   try {
-    const serverPort = parseInt(settings.SERVER_PORT || "3000");
-   
+    const serverPort = parseInt(settings.SERVER_PORT || "4000");
+    console.log(serverPort, agentId, input)
     const response = await fetch(
       `http://localhost:${serverPort}/${agentId}/message`,
       {
@@ -34,24 +19,13 @@ async function handleUserInput(input, agentId) {
     );
     console.log("The data",response);
     const data = await response.json();
-    console.log("The response from the agent is",data)
-    data.forEach((message) => console.log(`${"Agent"}: ${message.text}`));
+    console.log("The response from the agent is",data);
+    let answer=[];
+    data.forEach((message) => answer.push(`${"Agent"}: ${message.text}`));
+    return answer
   } catch (error) {
     console.error("Error fetching response:", error);
+    return [];
   }
-}
-
-export function startChat(characters) {
-  function chat() {
-    const agentId = characters[0].name ?? "Agent";
-    rl.question("You: ", async (input) => {
-      await handleUserInput(input, agentId);
-      if (input.toLowerCase() !== "exit") {
-        chat(); // Loop back to ask another question
-      }
-    });
-  }
-
-  return chat;
 }
 
