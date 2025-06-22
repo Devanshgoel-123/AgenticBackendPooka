@@ -27,18 +27,26 @@ import { Server } from "socket.io";
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { depositAction } from "./Actions/DepositAmount/deposit.ts";
+import cors from "cors";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app=express();
 app.use(bodyParser.json())
-const httpServer=createServer(app)
-const io=new Server(httpServer, {
+app.use(cors())
+const httpServer=createServer(app);
 
+export const socket_server=new Server(httpServer, {
+  connectTimeout:10000,
 })
 
 const runtimeMap = new Map<string, AgentRuntime>();
+
+socket_server.on("connection", (socket)=>{
+  console.log("Sockets up for connection", socket.id)
+
+})
 
 
 export const wait = (minTime: number = 1000, maxTime: number = 3000) => {
@@ -133,7 +141,6 @@ const startAgents = async () => {
   try {
     for (const character of characters) {
       const runtime = await startAgent(character, directClient as DirectClient);
-      console.log("The agent runtime is",runtime.serverUrl, runtime)
       runtimeMap.set(character.name, runtime);
     }
   } catch (error) {
@@ -173,8 +180,8 @@ app.post('/message', async (req:Request, res:Response):Promise<any>=>{
 
 startAgents()
 .then(() => {
-    httpServer.listen(5432, () => {
-      console.log("Server with WebSocket and REST API listening on port 4000");
+    httpServer.listen(process.env.NODE_SERVER_PORT, () => {
+      console.log(`Server with WebSocket and REST API listening on port ${process.env.NODE_SERVER_PORT}`);
     });
 })
   .catch((err) => {
