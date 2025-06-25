@@ -15,7 +15,6 @@ import { handleUserInput } from "./chat/index.ts";
 import { initializeClients } from "./clients/index.ts";
 import {
   getTokenForProvider,
-  loadCharacters,
   parseArguments,
 } from "./config/index.ts";
 import { initializeDatabase } from "./database/index.ts";
