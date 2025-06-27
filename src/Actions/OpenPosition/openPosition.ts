@@ -20,9 +20,7 @@ export const extractParamsFromText = async (
       perpName: string | null,
       leverage: number | null,
       collateral: number | null,
-      payToken: string | null,
       positionType: "long" | "short" | null,
-      chainName : string | null
     }
     `;
 
@@ -39,9 +37,7 @@ export const extractParamsFromText = async (
     perpName: null,
     leverage: null,
     collateral: null,
-    payToken: null,
     positionType: null,
-    chainName: null,
   };
   console.log("The Fetching is done", fetchedPositions);
   return fetchedPositions;
@@ -51,9 +47,7 @@ export type PositionParams = {
   perpName?: string;
   leverage?: number;
   collateral?: number;
-  payToken?: "USDC" | "ETH";
   positionType?: "long" | "short";
-  chainName: string;
 };
 
 export const openPostionAction: Action = {
@@ -93,13 +87,10 @@ export const openPostionAction: Action = {
         runtime
       );
       const questions: Record<keyof PositionParams, string> = {
-        perpName:
-          "Which perpetual (like ETH, BTC) do you want to open a position in?",
+        perpName:"Which perpetual (like ETH, BTC) do you want to open a position in?",
         leverage: "How much leverage would you like to use?",
         collateral: "How much collateral are you providing?",
-        payToken: "Which token are you using to pay? (USDC or ETH)",
         positionType: "Are you going long or short?",
-        chainName: "Which can do you wish to deposit collateral on?",
       };
 
       if (socket_server && socket_server.of("/").sockets.size > 0) {
@@ -141,7 +132,6 @@ export const openPostionAction: Action = {
       
       console.log(
         "Fetched params:",
-        result.payToken,
         result.perpName,
         result.positionType,
         result.collateral,
