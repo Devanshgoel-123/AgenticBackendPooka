@@ -17,7 +17,7 @@ import {
     const prompt = `
       Given this message: "${input}", extract the available data and return a JSON object with the following structure:h:
       {
-        perpName:string | null,
+        withdrawAmount:string | null
       }
       `;
   
@@ -39,7 +39,7 @@ import {
     withdrawAmount:string | null;
   };
   
-  export const depositAction: Action = {
+  export const withdrawAction: Action = {
     name: "WITHDRAW_AMOUNT",
     similes: ["WITHDRAW_AMOUNT"],
     description:

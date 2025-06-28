@@ -1,5 +1,4 @@
 import { DirectClient } from "@elizaos/client-direct";
-import { openPostionAction } from "./Actions/OpenPosition/openPosition.ts";
 import {
   AgentRuntime,
   elizaLogger,
@@ -26,6 +25,9 @@ import { Server } from "socket.io";
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { depositAction } from "./Actions/DepositAmount/deposit.ts";
+import { withdrawAction } from "./Actions/WithDrawAmount/withdraw.ts";
+import { openPostionAction } from "./Actions/OpenPosition/openPosition.ts";
+import { closeAction } from "./Actions/ClosePosition/closePosition.ts";
 import cors from "cors";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -83,11 +85,14 @@ export function createAgent(
     providers: [],
     actions: [
       openPostionAction, 
-      depositAction
+      depositAction,
+      closeAction,
+      withdrawAction
     ],
     services: [],
     managers: [],
     cacheManager: cache,
+  
   });
 }
 

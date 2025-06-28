@@ -25,7 +25,7 @@ export const handleUserInput=async(input:string , agentId:string)=>{
     return answer
   } catch (error) {
     console.error("Error fetching response:", error);
-    return [];
+    return "error";
   }
 }
 

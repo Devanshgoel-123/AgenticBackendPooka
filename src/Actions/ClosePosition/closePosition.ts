@@ -9,6 +9,7 @@ import {
   import { generateText, IAgentRuntime, ModelClass } from "@elizaos/core";
   import { parseJSONObjectFromText } from "@elizaos/core";
   import { socket_server } from "../../index.ts";
+  
   export const extractParamsFromText = async (
     input: string,
     runtime: IAgentRuntime
@@ -39,7 +40,7 @@ import {
     perpName:string | null;
   };
   
-  export const depositAction: Action = {
+  export const closeAction: Action = {
     name: "CLOSE_POSITION",
     similes: ["CLOSE_POSITION", "CLOSE_POSITION"],
     description:

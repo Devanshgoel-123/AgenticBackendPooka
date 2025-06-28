@@ -135,6 +135,39 @@ Your primary job is to help users create valid **perpetual position configuratio
           },
         },
       ],
+      [
+        {
+          user: '{{user}}',
+          content: {
+            text: 'I want to close my position on ETH/PERP',
+           
+          },
+        },
+        {
+          user: 'Sigma',
+          content: {
+            text: '',
+            action:'CLOSE_POSITIONL',
+          },
+        },
+      ],
+      [
+        {
+          user: '{{user}}',
+          content: {
+            text: 'I want to withdraw 10 from my deposits',
+           
+          },
+        },
+        {
+          user: 'Sigma',
+          content: {
+            text: '',
+            action:'WITHDRAW_AMOUNT',
+          },
+        },
+      ],
+
     ],
 
     postExamples: [],
