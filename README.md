@@ -1,94 +1,124 @@
-# Eliza
+# PookaFinance Eliza Agent
 
-## Edit the character files
+The **PookaFinance Eliza Agent** is a custom AI-powered assistant for interacting with the PookaFinance cross-chain perpetuals trading platform. Built for the Chromium Hackathon, this agent enables users to open, close, deposit into, and withdraw from trading positions across chains using natural language commands.
 
-Open `src/character.ts` to modify the default character. Uncomment and edit.
+The project consists of two key components:
 
-### Custom characters
+* The **Eliza agent server** running on port `4000` (deployed on AWS)
+* A **Node backend server** on port `5432` that interacts with on-chain smart contracts and is connected to a PostgreSQL database hosted on **Render**
 
-To load custom characters instead:
-- Use `pnpm start --characters="path/to/your/character.json"`
-- Multiple character files can be loaded simultaneously
+WebSocket communication is enabled for real-time interaction and updates.
 
-### Add clients
+---
+
+## Features
+
+The Eliza agent supports four core actions, defined in the `src/actions/` directory:
+
+* `openPosition.ts` – Initiates a cross-chain long or short position
+* `closePosition.ts` – Closes an open position and realizes any PnL
+* `depositPosition.ts` – Handles depositing collateral for trading
+* `withdrawPosition.ts` – Allows users to withdraw available funds
+
+These actions are triggered based on user intent, extracted from natural language inputs.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+* Node.js (version 22 or higher)
+* pnpm (`npm install -g pnpm`)
+* PostgreSQL database (configured via Render)
+* WebSocket-compatible client (optional, for real-time interactions)
+
+---
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Devanshgoel-123/AgenticBackendPooka.git
 ```
-# in character.ts
-clients: [Clients.TWITTER, Clients.DISCORD],
 
-# in character.json
-clients: ["twitter", "discord"]
-```
+---
 
-## Duplicate the .env.example template
+### 2. Configure environment variables
+
+Duplicate the `.env.example` file:
 
 ```bash
 cp .env.example .env
 ```
 
-\* Fill out the .env file with your own values.
+Then update the `.env` file with your environment-specific values:
 
-### Add login credentials and keys to .env
-```
-DISCORD_APPLICATION_ID="discord-application-id"
-DISCORD_API_TOKEN="discord-api-token"
-...
-OPENROUTER_API_KEY="sk-xx-xx-xxx"
-...
-TWITTER_USERNAME="username"
-TWITTER_PASSWORD="password"
-TWITTER_EMAIL="your@email.com"
+```env
+ANTHROPIC_API_KEY=your-anthropic-key
+SERVER_PORT=4000
+NODE_SERVER_PORT=5432
+POSTGRES_URL=
 ```
 
-## Install dependencies and start your agent
+---
+
+### 3. Start the Eliza agent
 
 ```bash
 pnpm i && pnpm start
 ```
-Note: this requires node to be at least version 22 when you install packages and run the agent.
+---
 
-## Run with Docker
+### Build and run 
 
-### Build and run Docker Compose (For x86_64 architecture)
-
-#### Edit the docker-compose.yaml file with your environment variables
+Update `docker-compose.yaml` with your environment values:
 
 ```yaml
 services:
-    eliza:
-        environment:
-            - OPENROUTER_API_KEY=blahdeeblahblahblah
+  eliza:
+    environment:
+      - ANTHROPIC_API_KEY=your-key
+      - SERVER_PORT=4000
+      - NODE_SERVER_PORT=5432
 ```
 
-#### Run the image
+Then start the container:
 
 ```bash
 docker compose up
 ```
 
-### Build the image with Mac M-Series or aarch64
-
-Make sure docker is running.
+### Build and run for Apple Silicon (aarch64)
 
 ```bash
-# The --load flag ensures the built image is available locally
-docker buildx build --platform linux/amd64 -t eliza-starter:v1 --load .
-```
-
-#### Edit the docker-compose-image.yaml file with your environment variables
-
-```yaml
-services:
-    eliza:
-        environment:
-            - OPENROUTER_API_KEY=blahdeeblahblahblah
-```
-
-#### Run the image
-
-```bash
+docker buildx build --platform linux/amd64 -t pooka-eliza-agent:v1 --load .
 docker compose -f docker-compose-image.yaml up
 ```
 
-# Deploy with Railway
+---
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/aW47_j)
+## Architecture Overview
+
+| Component       | Port | Description                          |
+| --------------- | ---- | ------------------------------------ |
+| Eliza Agent     | 4000 | Handles intent parsing and responses |
+| Node Server     | 5432 | Manages smart contract interactions  |
+| PostgreSQL      | —    | Hosted on Render                     |
+| WebSocket Layer | —    | Real-time updates and status         |
+
+---
+
+## Deployment
+
+* **Eliza Agent**: Deployed on AWS EC2
+* **PostgreSQL**: Hosted on [Render](https://render.com)
+* **WebSocket**: Enabled across services for real-time trade status
+
+---
+
+## License
+
+This project is released under the MIT License.
+
+---
+
