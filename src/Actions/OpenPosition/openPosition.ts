@@ -109,23 +109,22 @@ export const openPostionAction: Action = {
           result[field as keyof PositionParams] === undefined
       );
 
-      if (missingFields.length > 0 && callback) {
-        const [nextField, prompt] = missingFields[0];
-
-        await callback({
-          text: prompt,
-          actions: ["REPLY"],
-        });
-
-        return false;
-      }
-
       if (socket_server && socket_server.of("/").sockets.size > 0) {
+        if(missingFields.length > 0){
+          const missingMessages = missingFields.map(([_, message]) => message);
+            console.log("the missing messages are", missingMessages);
+            const finalMessage=`Please provide the following details ${missingMessages.join(" ")}`;
+            socket_server.emit("general_query", {
+              action:"response",
+              position:finalMessage
+            })
+        }else{
         socket_server.emit("open_position", {
           position:result,
           action:"OPEN_POSITION"
       });
         console.log("Emitted the socket event", result)
+    }
       } else {
         console.log("No active connections", socket_server);
       }

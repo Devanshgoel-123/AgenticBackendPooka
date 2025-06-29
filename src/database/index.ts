@@ -5,7 +5,6 @@ import path from "path";
 
 export function initializeDatabase(dataDir: string) {
   if (process.env.POSTGRES_URL) {
-    console.log("Using postgres url")
     const db = new PostgresDatabaseAdapter({
       connectionString: process.env.POSTGRES_URL,
     });

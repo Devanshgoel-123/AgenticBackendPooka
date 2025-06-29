@@ -87,28 +87,21 @@ import {
         );
   
         if (socket_server && socket_server.of("/").sockets.size > 0) {
-          socket_server.emit("close_position", {
-            position:result,
-            action:"CLOSE_POSITION"
-        });
-        } else {
-          console.log("No active connections", socket_server);
-        }
-        if (missingFields.length > 0 && callback) {
-          const [nextField, prompt] = missingFields[0];
-  
-          await callback({
-            text: prompt,
-            actions: ["REPLY"],
+
+          if(missingFields.length > 0){
+            const missingMessages = missingFields.map(([_, message]) => message);
+            console.log("the missing messages are", missingMessages);
+            const finalMessage=`Please provide the following details ${missingMessages.join(" ")}`;
+            socket_server.emit("general_query", {
+              action:"response",
+              position:finalMessage
+            })
+          }else{
+            socket_server.emit("close_position", {
+              position:result,
+              action:"CLOSE_POSITION"
           });
-  
-          return false;
-        }
-        if (socket_server && socket_server.of("/").sockets.size > 0) {
-          socket_server.emit("", {
-            position:result,
-            action:"CLOSE_POSITION"
-        });
+          }
         } else {
           console.log("No active connections", socket_server);
         }

@@ -9,6 +9,7 @@ import { elizaLogger } from "@elizaos/core";
 import { generateText, IAgentRuntime, ModelClass } from "@elizaos/core";
 import { parseJSONObjectFromText } from "@elizaos/core";
 import { socket_server } from "../../index.ts";
+
 export const extractParamsFromText = async (
   input: string,
   runtime: IAgentRuntime
@@ -36,6 +37,7 @@ export const extractParamsFromText = async (
   console.log("The Fetching is done", fetchedDepositParams);
   return fetchedDepositParams;
 };
+
 
 export type DepositParams = {
   collateral?: number;
@@ -88,35 +90,46 @@ export const depositAction: Action = {
       const missingFields = Object.entries(questions).filter(
         ([field]) =>
           result[field as keyof DepositParams] === null ||
-          result[field as keyof DepositParams] === undefined
+          result[field as keyof DepositParams] === undefined || result[field as keyof DepositParams] === "null"
       );
-
+      
       if (socket_server && socket_server.of("/").sockets.size > 0) {
-        socket_server.emit("deposit_collateral", {
-          position:result,
-          action:"DEPOSIT_COLLATERAL"
-      });
-      } else {
-        console.log("No active connections", socket_server);
-      }
-      if (missingFields.length > 0 && callback) {
-        const [nextField, prompt] = missingFields[0];
-
-        await callback({
-          text: prompt,
-          actions: ["REPLY"],
+        if(missingFields.length > 0){
+          const missingMessages = missingFields.map(([_, message]) => message);
+          console.log("the missing messages are", missingMessages);
+          const finalMessage=`I need a few more details to proceed: ${missingMessages.join(" ")}`;
+          socket_server.emit("general_query", {
+            action:"response",
+            position:finalMessage
+          })
+        }else{
+          socket_server.emit("deposit_collateral", {
+            position:result,
+            action:"DEPOSIT_COLLATERAL"
         });
 
-        return false;
-      }
-      if (socket_server && socket_server.of("/").sockets.size > 0) {
-        socket_server.emit("deposit_collateral", {
-          position:result,
-          action:"DEPOSIT_COLLATERAL"
-      });
+        }
       } else {
         console.log("No active connections", socket_server);
       }
+      // if (missingFields.length > 0 && callback) {
+      //   const [nextField, prompt] = missingFields[0];
+
+      //   await callback({
+      //     text: prompt,
+      //     actions: ["REPLY"],
+      //   });
+
+      //   return false;
+      // }
+      // if (socket_server && socket_server.of("/").sockets.size > 0) {
+      //   socket_server.emit("deposit_collateral", {
+      //     position:result,
+      //     action:"DEPOSIT_COLLATERAL"
+      // });
+      // } else {
+      //   console.log("No active connections", socket_server);
+      // }
       console.log(
         "Fetched params:",
         result.payToken,
