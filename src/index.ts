@@ -116,6 +116,7 @@ async function startAgent(character: Character, directClient: DirectClient) {
     const runtime = createAgent(character, db, cache, token);
 
     await runtime.initialize();
+    runtime.actions.map((item)=>console.log(item.name));
 
     runtime.clients = await initializeClients(character, runtime);
 
@@ -179,6 +180,12 @@ app.post('/message', async (req:Request, res:Response):Promise<any>=>{
     console.error("Agent handling error:", err);
     return res.status(500).json({ error: "Agent failed to process input" });
   }
+})
+
+app.get("/", (req:Request, res:Response):any=>{
+  return res.status(200).json({
+    message:"Hello there everything is fine"
+  })
 })
 
 
