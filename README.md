@@ -121,4 +121,11 @@ docker compose -f docker-compose-image.yaml up
 This project is released under the MIT License.
 
 ---
+## Project Links
 
+1. [Demo Video](https://youtu.be/byVYwKSZH78)
+2. [Pooka Finance Contracts](https://github.com/Dhruv-Varshney-developer/pooka-finance-contracts)
+3. [Pooka Finance App](https://github.com/Dhruv-Varshney-developer/pooka-finance-app)
+4. [Live Application](https://pooka-finance-app.vercel.app/)
+5. [User Documentation](https://pookafinance.gitbook.io/pookafinance-docs)
+6. [AI Agent Backend](https://github.com/Devanshgoel-123/AgenticBackendPooka)
