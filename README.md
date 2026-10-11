@@ -99,6 +99,31 @@ docker compose -f docker-compose-image.yaml up
 
 ## Architecture Overview
 
+```mermaid
+flowchart LR
+    User["Trader"] -->|"Open a 5x long on ETH with 100 USDC"| App["Pooka Finance app"]
+    App -->|"POST /:agentId/message"| Direct["Eliza DirectClient<br/>REST · port 4000"]
+
+    subgraph Agent["Eliza agent runtime"]
+        Direct --> RT["AgentRuntime<br/>Anthropic Claude<br/>bootstrap + node plugins"]
+        RT --> Act{"Intent → action"}
+        Act --> OP["OPEN_POSITION"]
+        Act --> CP["CLOSE_POSITION"]
+        Act --> DP["DEPOSIT"]
+        Act --> WD["WITHDRAW"]
+        RT <--> Mem[("Memory & cache<br/>SQLite / PostgreSQL adapter")]
+    end
+
+    OP & CP & DP & WD -->|"LLM extracts params<br/>(asset, side, size, leverage, chain)"| WS["Socket.IO server<br/>emits position events"]
+    WS -->|real-time| Exec["Pooka node server<br/>smart-contract calls"]
+    Exec --> Chains["Perp contracts<br/>across chains"]
+    Exec <--> PG[("PostgreSQL<br/>Render")]
+    WS -->|status updates| App
+```
+
+**Flow:** the app sends a chat message to the Eliza agent. The matching action uses Claude to pull structured trade parameters out of the message, then emits a Socket.IO event. The execution server picks up the event, calls the on-chain contracts, and streams status back to the app.
+
+
 | Component       | Port | Description                          |
 | --------------- | ---- | ------------------------------------ |
 | Eliza Agent     | 4000 | Handles intent parsing and responses |
